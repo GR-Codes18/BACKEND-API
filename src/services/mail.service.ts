@@ -1,21 +1,13 @@
-import nodemailer from 'nodemailer';
+import { Resend } from 'resend';
 import dotenv from 'dotenv';
 
 dotenv.config();
 
-const transporter = nodemailer.createTransport({
-  host: 'smtp.gmail.com',
-  port: 587,
-  secure: false,
-  auth: {
-    user: process.env.EMAIL_USER,
-    pass: process.env.EMAIL_PASSWORD,
-  },
-});
+const resend = new Resend(process.env.RESEND_API_KEY);
 
 export async function sendOtpEmail(to: string, code: string): Promise<void> {
-  await transporter.sendMail({
-    from: `"Big Data System" <${process.env.EMAIL_USER}>`,
+  const { error } = await resend.emails.send({
+    from: `Big Data System <notificaciones@bigdata-crm.com>`,
     to,
     subject: 'Tu código de verificación',
     html: `
@@ -27,4 +19,9 @@ export async function sendOtpEmail(to: string, code: string): Promise<void> {
       </div>
     `,
   });
+
+  if (error) {
+    console.error('Error al enviar correo con Resend:', error);
+    throw new Error('No se pudo enviar el correo de verificación');
+  }
 }
