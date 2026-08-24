@@ -1,0 +1,27 @@
+{
+  "compilerOptions": {
+    // Dónde está tu código fuente y dónde se compila
+    "rootDir": "./src",
+    "outDir": "./dist",
+
+    // Configuración para Node.js (no navegador)
+    "module": "commonjs",
+    "target": "es2020",
+    "lib": ["es2020"],
+    "types": ["node"],
+
+    // Otros outputs
+    "sourceMap": true,
+    "declaration": false,
+
+    // Opciones estrictas (buenas prácticas)
+    "strict": true,
+    "esModuleInterop": true,
+    "skipLibCheck": true,
+    "forceConsistentCasingInFileNames": true,
+    "resolveJsonModule": true,
+
+  },
+  "include": ["src/**/*"],
+  "exclude": ["node_modules", "dist"]
+}

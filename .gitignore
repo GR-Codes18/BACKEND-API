@@ -1,0 +1,16 @@
+node_modules
+dist
+.env
+
+# Logs
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# Editor/OS
+.vscode/
+.DS_Store
+Thumbs.db
+
+# Prisma (por si generas algo local que no deba subirse)
+prisma/dev.db
