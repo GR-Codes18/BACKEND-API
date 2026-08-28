@@ -1,7 +1,7 @@
 import { prisma } from '../config/db';
 import { sendOtpEmail } from './mail.service';
 
-const OTP_EXPIRATION_MINUTES = 3;
+const OTP_EXPIRATION_MINUTES = 1;
 
 // Genera un código de 6 dígitos
 function generateOtpCode(): string {
@@ -51,7 +51,7 @@ export async function validateOtp(userId: string, code: string): Promise<boolean
   return true;
 }
 
-const RESEND_COOLDOWN_MINUTES = 10;
+const RESEND_COOLDOWN_MINUTES = 3;
 
 // Verifica si el usuario puede solicitar un nuevo OTP (cooldown de 10 min)
 export async function canResendOtp(userId: string): Promise<{ allowed: boolean; waitSeconds?: number }> {

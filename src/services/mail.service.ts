@@ -15,7 +15,7 @@ export async function sendOtpEmail(to: string, code: string): Promise<void> {
         <h2>Código de verificación</h2>
         <p>Tu código es:</p>
         <h1 style="letter-spacing: 4px;">${code}</h1>
-        <p>Este código expira en 3 minutos.</p>
+        <p>Este código expira en 1 minuto.</p>
       </div>
     `,
   });
