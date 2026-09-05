@@ -198,3 +198,11 @@ export async function resendOtp(req: Request, res: Response) {
     return res.status(500).json({ message: 'Error interno del servidor' });
   }
 }
+
+export async function me(req: Request, res: Response) {
+  // req.user ya viene garantizado por el middleware — si llegamos aquí, el token era válido
+  return res.status(200).json({
+    userId: req.user?.userId,
+    email: req.user?.email,
+  });
+}

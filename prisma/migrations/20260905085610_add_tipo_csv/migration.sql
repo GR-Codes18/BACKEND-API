@@ -1,0 +1,2 @@
+-- AlterTable
+ALTER TABLE `csvfile` ADD COLUMN `tipo` ENUM('PROPIO', 'OTRO') NOT NULL DEFAULT 'PROPIO';
