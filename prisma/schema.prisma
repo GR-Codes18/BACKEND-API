@@ -16,6 +16,7 @@ model User {
   createdAt  DateTime @default(now())
 
   otpCodes   OtpCode[]
+  csvFiles   CsvFile[]
 }
 
 model OtpCode {
@@ -27,4 +28,30 @@ model OtpCode {
 
   userId    String
   user      User     @relation(fields: [userId], references: [id])
+}
+
+enum EstadoCsv {
+  PENDIENTE
+  LIMPIO
+}
+
+enum TipoCsv {
+  PROPIO
+  OTRO
+}
+
+model CsvFile {
+  id            String    @id @default(uuid())
+  nombre        String
+  estado        EstadoCsv @default(PENDIENTE)
+  tipo          TipoCsv   @default(PROPIO)
+  urlArchivo    String
+  publicId      String
+  tamanioBytes  Int
+  filasCount    Int?
+  columnCount   Int?
+  userId        String
+  user          User      @relation(fields: [userId], references: [id])
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
 }
