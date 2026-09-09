@@ -203,3 +203,46 @@ export async function me(req: Request, res: Response) {
     role: req.user?.role,
   });
 }
+
+export async function crearTrabajador(req: Request, res: Response) {
+  const result = registerSchema.safeParse(req.body);
+
+  if (!result.success) {
+    return res.status(400).json({
+      message: 'Datos inválidos',
+      errors: z.treeifyError(result.error),
+    });
+  }
+
+  const { name, email, password } = result.data;
+
+  try {
+    const existingUser = await prisma.user.findUnique({ where: { email } });
+
+    if (existingUser) {
+      return res.status(409).json({
+        message: 'Este correo ya está registrado.',
+      });
+    }
+
+    const hashedPassword = await bcrypt.hash(password, SALT_ROUNDS);
+
+    const trabajador = await prisma.user.create({
+      data: { name, email, password: hashedPassword, role: 'TRABAJADOR' },
+    });
+
+    return res.status(201).json({
+      message: 'Trabajador creado exitosamente',
+      trabajador: {
+        id: trabajador.id,
+        name: trabajador.name,
+        email: trabajador.email,
+        role: trabajador.role,
+        passwordInicial: password,
+      },
+    });
+  } catch (error) {
+    console.error('Error en crearTrabajador:', error);
+    return res.status(500).json({ message: 'Error interno del servidor' });
+  }
+}
