@@ -154,6 +154,7 @@ export async function login(req: Request, res: Response) {
       return res.status(202).json({
         message: 'Tu solicitud de acceso fue enviada. Espera la aprobación del Analista.',
         loginRequestId: solicitud.id,
+        userId: user.id,
         email: user.email,
       });
     }
