@@ -27,37 +27,36 @@ export async function register(req: Request, res: Response) {
   const { name, email, password } = result.data;
 
   try {
-    // 2. Verificar si el correo ya existe
+    // 2. Solo puede existir un Analista en el sistema
+    const analistaExistente  = await prisma.user.count({ where: { role: 'ANALISTA' } });
+
+    if (analistaExistente > 0) {
+      return res.status(403).json({
+        message: 'Ya existe un Analista registrado. Este endpoint no está disponible.',
+      });
+    }
+
+    // 3. Verificar si el correo ya existe
     const existingUser = await prisma.user.findUnique({ where: { email } });
 
-    if (existingUser && existingUser.isVerified) {
+    if (existingUser) {
       return res.status(409).json({
-        message: 'Este correo ya está registrado. Inicia sesión.',
+        message: 'Este correo ya está registrado.',
       });
     }
 
-    // 3. Hashear la contraseña
+    // 4. Hashear la contraseña
     const hashedPassword = await bcrypt.hash(password, SALT_ROUNDS);
 
-    let user;
+    // 5. Crear el Analista
+    const user = await prisma.user.create({
+      data: { name, email, password: hashedPassword, role: 'ANALISTA' },
+    });
 
-    if (existingUser && !existingUser.isVerified) {
-      // Usuario existe pero no verificado: actualizamos sus datos
-      user = await prisma.user.update({
-        where: { id: existingUser.id },
-        data: { name, password: hashedPassword },
-      });
-    } else {
-      // Usuario nuevo
-      user = await prisma.user.create({
-        data: { name, email, password: hashedPassword },
-      });
-    }
-
-    // 4. Generar y enviar OTP
+    // 6. Generar y enviar OTP
     await createOtpForUser(user.id, user.email);
 
-    // 5. Responder (sin JWT todavía, falta verificar el OTP)
+    // 7. Responder (sin JWT todavía, falta verificar el OTP)
     return res.status(201).json({
       message: 'Registro exitoso. Revisa tu correo para verificar tu cuenta.',
       userId: user.id,
@@ -89,15 +88,15 @@ export async function verifyOtp(req: Request, res: Response) {
       });
     }
 
-    // Marcar el usuario como verificado
-    const user = await prisma.user.update({
-      where: { id: userId },
-      data: { isVerified: true },
-    });
+    const user = await prisma.user.findUnique({ where: { id: userId } });
+
+    if (!user) {
+      return res.status(404).json({ message: 'Usuario no encontrado' });
+    }
 
     // Generar el JWT
     const token = jwt.sign(
-      { userId: user.id, email: user.email },
+      { userId: user.id, email: user.email, role: user.role },
       process.env.JWT_SECRET as string,
       { expiresIn: process.env.JWT_EXPIRES_IN as string } as jwt.SignOptions
     );
@@ -109,6 +108,7 @@ export async function verifyOtp(req: Request, res: Response) {
         id: user.id,
         name: user.name,
         email: user.email,
+        role: user.role,
       },
     });
   } catch (error) {
@@ -142,13 +142,9 @@ export async function login(req: Request, res: Response) {
       return res.status(401).json({ message: 'Correo o contraseña incorrectos' });
     }
 
-    if (!user.isVerified) {
-      return res.status(403).json({
-        message: 'Tu cuenta no está verificada. Completa el registro primero.',
-      });
-    }
-
-    // Contraseña correcta y cuenta verificada: generar OTP para el 2FA
+    // Contraseña correcta: generar OTP para el 2FA
+    // NOTA: en la Fase 3 aquí se ramificará por role — el Trabajador pasará
+    // primero por un LoginRequest pendiente de aprobación del Analista.
     await createOtpForUser(user.id, user.email);
 
     return res.status(200).json({
@@ -204,5 +200,6 @@ export async function me(req: Request, res: Response) {
   return res.status(200).json({
     userId: req.user?.userId,
     email: req.user?.email,
+    role: req.user?.role,
   });
 }

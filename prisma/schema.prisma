@@ -7,12 +7,17 @@ datasource db {
   url      = env("DATABASE_URL")
 }
 
+enum Role {
+  ANALISTA
+  TRABAJADOR
+}
+
 model User {
   id         String   @id @default(uuid())
   name       String
   email      String   @unique
   password   String
-  isVerified Boolean  @default(false)
+  role       Role     @default(ANALISTA)
   createdAt  DateTime @default(now())
 
   otpCodes   OtpCode[]
