@@ -10,6 +10,12 @@ import { validateOtp } from '../services/otp.service';
 import { loginSchema } from '../schemas/auth.schema';
 import { resendOtpSchema } from '../schemas/auth.schema';
 import { canResendOtp } from '../services/otp.service';
+import {
+  crearOReusarLoginRequest,
+  aceptarLoginRequest,
+  rechazarLoginRequest,
+  consultarEstado,
+} from '../services/loginRequest.service';
 
 const SALT_ROUNDS = 10;
 
@@ -142,9 +148,17 @@ export async function login(req: Request, res: Response) {
       return res.status(401).json({ message: 'Correo o contraseña incorrectos' });
     }
 
-    // Contraseña correcta: generar OTP para el 2FA
-    // NOTA: en la Fase 3 aquí se ramificará por role — el Trabajador pasará
-    // primero por un LoginRequest pendiente de aprobación del Analista.
+    if (user.role === 'TRABAJADOR') {
+      const solicitud = await crearOReusarLoginRequest(user.id);
+
+      return res.status(202).json({
+        message: 'Tu solicitud de acceso fue enviada. Espera la aprobación del Analista.',
+        loginRequestId: solicitud.id,
+        email: user.email,
+      });
+    }
+
+    // Analista: comportamiento original, directo a OTP
     await createOtpForUser(user.id, user.email);
 
     return res.status(200).json({
@@ -245,4 +259,81 @@ export async function crearTrabajador(req: Request, res: Response) {
     console.error('Error en crearTrabajador:', error);
     return res.status(500).json({ message: 'Error interno del servidor' });
   }
+}
+
+export async function aceptarSolicitud(req: Request, res: Response) {
+  const id = req.params.id as string;
+
+  try {
+    const resultado = await aceptarLoginRequest(id);
+
+    if (!resultado.ok) {
+      const html = paginaResultado(
+        resultado.motivo === 'expirada'
+          ? 'Esta solicitud ya expiró.'
+          : resultado.motivo === 'no_pendiente'
+          ? `Esta solicitud ya fue ${resultado.estadoActual === 'ACEPTADA' ? 'aceptada' : 'resuelta'} antes.`
+          : 'Solicitud no encontrada.'
+      );
+      return res.status(200).send(html);
+    }
+
+    return res.status(200).send(paginaResultado('Acceso aceptado. Se envió el código al Trabajador.'));
+  } catch (error) {
+    console.error('Error en aceptarSolicitud:', error);
+    return res.status(500).send(paginaResultado('Ocurrió un error al procesar la solicitud.'));
+  }
+}
+
+export async function rechazarSolicitud(req: Request, res: Response) {
+  const id = req.params.id as string;
+
+  try {
+    const resultado = await rechazarLoginRequest(id);
+
+    if (!resultado.ok) {
+      const html = paginaResultado(
+        resultado.motivo === 'no_pendiente'
+          ? `Esta solicitud ya fue ${resultado.estadoActual === 'RECHAZADA' ? 'rechazada' : 'resuelta'} antes.`
+          : 'Solicitud no encontrada.'
+      );
+      return res.status(200).send(html);
+    }
+
+    return res.status(200).send(paginaResultado('Acceso rechazado correctamente.'));
+  } catch (error) {
+    console.error('Error en rechazarSolicitud:', error);
+    return res.status(500).send(paginaResultado('Ocurrió un error al procesar la solicitud.'));
+  }
+}
+
+export async function estadoSolicitud(req: Request, res: Response) {
+  const id = req.params.id as string;
+  const { email } = req.query;
+
+  if (!email || typeof email !== 'string') {
+    return res.status(400).json({ message: 'El email es requerido' });
+  }
+
+  try {
+    const estado = await consultarEstado(id, email);
+
+    if (!estado) {
+      return res.status(404).json({ message: 'Solicitud no encontrada' });
+    }
+
+    return res.status(200).json({ estado });
+  } catch (error) {
+    console.error('Error en estadoSolicitud:', error);
+    return res.status(500).json({ message: 'Error interno del servidor' });
+  }
+}
+
+function paginaResultado(mensaje: string): string {
+  return `
+    <div style="font-family: sans-serif; padding: 40px; text-align: center;">
+      <h2>${mensaje}</h2>
+      <p style="color: #6b7280;">Ya puedes cerrar esta pestaña.</p>
+    </div>
+  `;
 }
