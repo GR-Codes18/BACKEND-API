@@ -22,6 +22,7 @@ model User {
 
   otpCodes   OtpCode[]
   csvFiles   CsvFile[]
+  loginRequests LoginRequest[]
 }
 
 model OtpCode {
@@ -59,4 +60,20 @@ model CsvFile {
   user          User      @relation(fields: [userId], references: [id])
   createdAt     DateTime  @default(now())
   updatedAt     DateTime  @updatedAt
+}
+
+enum EstadoLoginRequest {
+  PENDIENTE
+  ACEPTADA
+  RECHAZADA
+  EXPIRADA
+}
+
+model LoginRequest {
+  id         String             @id @default(uuid())
+  estado     EstadoLoginRequest @default(PENDIENTE)
+  userId     String
+  user       User               @relation(fields: [userId], references: [id])
+  createdAt  DateTime           @default(now())
+  resueltaAt DateTime?
 }
