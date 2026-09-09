@@ -7,16 +7,22 @@ datasource db {
   url      = env("DATABASE_URL")
 }
 
+enum Role {
+  ANALISTA
+  TRABAJADOR
+}
+
 model User {
   id         String   @id @default(uuid())
   name       String
   email      String   @unique
   password   String
-  isVerified Boolean  @default(false)
+  role       Role     @default(ANALISTA)
   createdAt  DateTime @default(now())
 
   otpCodes   OtpCode[]
   csvFiles   CsvFile[]
+  loginRequests LoginRequest[]
 }
 
 model OtpCode {
@@ -54,4 +60,20 @@ model CsvFile {
   user          User      @relation(fields: [userId], references: [id])
   createdAt     DateTime  @default(now())
   updatedAt     DateTime  @updatedAt
+}
+
+enum EstadoLoginRequest {
+  PENDIENTE
+  ACEPTADA
+  RECHAZADA
+  EXPIRADA
+}
+
+model LoginRequest {
+  id         String             @id @default(uuid())
+  estado     EstadoLoginRequest @default(PENDIENTE)
+  userId     String
+  user       User               @relation(fields: [userId], references: [id])
+  createdAt  DateTime           @default(now())
+  resueltaAt DateTime?
 }
