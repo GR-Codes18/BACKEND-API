@@ -55,8 +55,6 @@ export async function sendLoginRequestEmail(
     console.error('Error al enviar correo de solicitud de acceso:', error);
     throw new Error('No se pudo enviar el correo de solicitud de acceso');
   }
-<<<<<<< HEAD
-=======
 }
 
 export async function sendAdminContactEmail(
@@ -85,5 +83,4 @@ export async function sendAdminContactEmail(
     console.error('Error al enviar correo al administrador:', error);
     throw new Error('No se pudo enviar el correo al administrador');
   }
->>>>>>> a756780 (Initial commit)
 }
