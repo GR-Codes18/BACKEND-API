@@ -3,7 +3,6 @@ import cors from 'cors';
 import dotenv from 'dotenv';
 import authRoutes from './routes/auth.routes';
 import csvRoutes from './routes/csv.routes';
-import contactRoutes from './routes/contact.routes';
 
 dotenv.config();
 
@@ -21,7 +20,6 @@ app.get('/health', (req, res) => {
 
 app.use('/auth', authRoutes);
 app.use('/csv', csvRoutes);
-app.use('/contact', contactRoutes);
 
 app.listen(PORT, () => {
   console.log(`Servidor corriendo en http://localhost:${PORT}`);

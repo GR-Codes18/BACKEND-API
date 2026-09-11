@@ -56,31 +56,3 @@ export async function sendLoginRequestEmail(
     throw new Error('No se pudo enviar el correo de solicitud de acceso');
   }
 }
-
-export async function sendAdminContactEmail(
-  adminEmail: string,
-  userName: string,
-  userEmail: string,
-  userMessage: string
-): Promise<void> {
-  const { error } = await resend.emails.send({
-    from: `Mercamax <notificaciones@bigdata-crm.com>`,
-    to: adminEmail,
-    subject: 'Nuevo mensaje de usuario',
-    html: `
-      <div style="font-family: sans-serif; padding: 20px; max-width: 600px;">
-        <h2>Nuevo mensaje de usuario</h2>
-        <p><strong>Nombre:</strong> ${userName}</p>
-        <p><strong>Correo:</strong> ${userEmail}</p>
-        <p><strong>Mensaje:</strong></p>
-        <div style="border-left:4px solid #e5e7eb; padding:12px; margin:12px 0; white-space:pre-wrap;">${userMessage}</div>
-        <p style="color: #6b7280; font-size: 13px;">Este mensaje fue enviado desde el formulario de contacto del usuario.</p>
-      </div>
-    `,
-  });
-
-  if (error) {
-    console.error('Error al enviar correo al administrador:', error);
-    throw new Error('No se pudo enviar el correo al administrador');
-  }
-}
