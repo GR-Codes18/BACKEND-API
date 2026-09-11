@@ -77,3 +77,20 @@ model LoginRequest {
   createdAt  DateTime           @default(now())
   resueltaAt DateTime?
 }
+
+enum EstadoSolicitud {
+  PENDIENTE
+  RESPONDIDA
+}
+
+model Solicitud {
+  id             String          @id @default(uuid())
+  nombreCompleto String
+  correo         String
+  telefono       String
+  mensaje        String
+  estado         EstadoSolicitud @default(PENDIENTE)
+  respuesta      String?
+  respondidaAt   DateTime?
+  createdAt      DateTime        @default(now())
+}

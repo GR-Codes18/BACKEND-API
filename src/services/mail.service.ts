@@ -56,3 +56,60 @@ export async function sendLoginRequestEmail(
     throw new Error('No se pudo enviar el correo de solicitud de acceso');
   }
 }
+
+export async function sendSolicitudAlertEmail(
+  to: string,
+  solicitud: {
+    nombreCompleto: string;
+    correo: string;
+    telefono: string;
+    mensaje: string;
+  }
+): Promise<void> {
+  const { error } = await resend.emails.send({
+    from: `Mercamax <notificaciones@bigdata-crm.com>`,
+    to,
+    subject: 'Nueva solicitud de contacto',
+    html: `
+      <div style="font-family: sans-serif; padding: 20px; max-width: 480px;">
+        <h2>Nueva solicitud de contacto</h2>
+        <p>Tienes una nueva oportunidad de negocio:</p>
+        <p><strong>Nombre:</strong> ${solicitud.nombreCompleto}</p>
+        <p><strong>Correo:</strong> ${solicitud.correo}</p>
+        <p><strong>Teléfono:</strong> ${solicitud.telefono}</p>
+        <p><strong>Mensaje:</strong></p>
+        <p style="background-color: #f3f4f6; padding: 12px; border-radius: 6px;">${solicitud.mensaje}</p>
+        <p style="color: #6b7280; font-size: 13px;">Revisa el módulo Solicitudes para responder.</p>
+      </div>
+    `,
+  });
+
+  if (error) {
+    console.error('Error al enviar correo de alerta de solicitud:', error);
+    throw new Error('No se pudo enviar el correo de alerta al analista');
+  }
+}
+
+export async function sendSolicitudRespuestaEmail(
+  to: string,
+  nombreCompleto: string,
+  respuesta: string
+): Promise<void> {
+  const { error } = await resend.emails.send({
+    from: `Mercamax <notificaciones@bigdata-crm.com>`,
+    to,
+    subject: 'Respuesta a tu solicitud',
+    html: `
+      <div style="font-family: sans-serif; padding: 20px; max-width: 480px;">
+        <h2>Hola, ${nombreCompleto}</h2>
+        <p>Gracias por contactarte con Mercamax. Esta es nuestra respuesta a tu mensaje:</p>
+        <p style="background-color: #f3f4f6; padding: 12px; border-radius: 6px;">${respuesta}</p>
+      </div>
+    `,
+  });
+
+  if (error) {
+    console.error('Error al enviar correo de respuesta al cliente:', error);
+    throw new Error('No se pudo enviar el correo de respuesta al cliente');
+  }
+}
